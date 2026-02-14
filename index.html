@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI ROI Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f1c;
+            --bg-secondary: #111827;
+            --bg-card: #1a2235;
+            --bg-card-hover: #1e2842;
+            --bg-input: #0d1424;
+            --border: #2a3550;
+            --border-focus: #3b82f6;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-blue-light: #60a5fa;
+            --accent-green: #10b981;
+            --accent-green-glow: rgba(16, 185, 129, 0.15);
+            --accent-red: #ef4444;
+            --accent-red-glow: rgba(239, 68, 68, 0.15);
+            --accent-amber: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --gradient-blue: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            --gradient-green: linear-gradient(135deg, #10b981, #059669);
+            --gradient-mesh: radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                            radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                            radial-gradient(ellipse at 50% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --shadow-glow-blue: 0 0 20px rgba(59, 130, 246, 0.2);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            background: var(--gradient-mesh);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+        }
+
+        header .badge {
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent-blue-light);
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 0.35rem 1rem;
+            border-radius: 100px;
+            margin-bottom: 1.25rem;
+        }
+
+        header h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Use Case Selector */
+        .use-case-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 0.75rem;
+            margin: 2.5rem 0;
+        }
+
+        .use-case-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            color: var(--text-secondary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .use-case-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+        }
+
+        .use-case-btn.active {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue-light);
+            box-shadow: var(--shadow-glow-blue);
+        }
+
+        .use-case-btn .icon {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Section Layout */
+        .sections-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .sections-grid { grid-template-columns: 1fr; }
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            box-shadow: var(--shadow-card);
+        }
+
+        .section-full {
+            grid-column: 1 / -1;
+        }
+
+        .section h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section h2 span {
+            color: var(--accent-blue-light);
+        }
+
+        /* Form Fields */
+        .field {
+            margin-bottom: 1.25rem;
+        }
+
+        .field label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+
+        .field label .hint {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .field input, .field select {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.7rem 1rem;
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .field input:focus, .field select:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .field input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Results Panel */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .result-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-card .value {
+            font-family: 'Space Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .result-card .sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .result-card.positive { border-color: rgba(16, 185, 129, 0.3); background: var(--accent-green-glow); }
+        .result-card.positive .value { color: var(--accent-green); }
+
+        .result-card.negative { border-color: rgba(239, 68, 68, 0.3); background: var(--accent-red-glow); }
+        .result-card.negative .value { color: var(--accent-red); }
+
+        .result-card.neutral .value { color: var(--accent-blue-light); }
+
+        /* Chart */
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .bar-row {
+            display: grid;
+            grid-template-columns: 140px 1fr 100px;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .bar-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+
+        .bar-track {
+            height: 28px;
+            background: var(--bg-input);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            min-width: 2px;
+        }
+
+        .bar-fill.cost { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .bar-fill.benefit { background: linear-gradient(90deg, #10b981, #34d399); }
+
+        .bar-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Cumulative Chart */
+        .cumulative-chart {
+            width: 100%;
+            height: 250px;
+        }
+
+        .cumulative-chart svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Scenario Toggle */
+        .scenario-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }
+
+        .scenario-btn {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.5rem 1.25rem;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scenario-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+        .scenario-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        /* Calculate Button */
+        .calc-btn {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: var(--gradient-blue);
+            border: none;
+            border-radius: var(--radius);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
+        }
+
+        .calc-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Results Section */
+        #results {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 3rem 0;
+        }
+
+        /* Export button */
+        .export-btn {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .export-btn:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
+
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: 1rem; }
+        .mt-2 { margin-top: 2rem; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        footer a {
+            color: var(--accent-blue-light);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+
+    <div class="container">
+        <header>
+            <div class="badge">Open Source ROI Framework</div>
+            <h1>GenAI ROI Calculator</h1>
+            <p>Plug in your numbers, see your projected ROI. Select a use case template or build a custom calculation.</p>
+        </header>
+
+        <!-- Use Case Selector -->
+        <div class="use-case-selector">
+            <button class="use-case-btn active" onclick="selectUseCase('custom')">
+                <span class="icon">⚡</span>Custom
+            </button>
+            <button class="use-case-btn" onclick="selectUseCase('chatbot')">
+                <span class="icon">💬</span>Chatbot
+            </button>
+            <button class="use-case-btn" onclick="selectUseCase('codegen')">
+                <span class="icon">🧑‍💻</span>Code Gen
+            </button>
+            <button class="use-case-btn" onclick="selectUseCase('docproc')">
+                <span class="icon">📄</span>Doc Processing
+            </button>
+            <button class="use-case-btn" onclick="selectUseCase('content')">
+                <span class="icon">✍️</span>Content Gen
+            </button>
+            <button class="use-case-btn" onclick="selectUseCase('data')">
+                <span class="icon">📊</span>Data Analysis
+            </button>
+            <button class="use-case-btn" onclick="selectUseCase('knowledge')">
+                <span class="icon">🔍</span>Knowledge Base
+            </button>
+        </div>
+
+        <!-- Input Sections -->
+        <div class="sections-grid">
+            <!-- Costs Section -->
+            <div class="section">
+                <h2>💰 <span>Costs</span> — Investment</h2>
+                
+                <div class="field">
+                    <label>Development (one-time) <span class="hint">Prompts, app, integration</span></label>
+                    <input type="number" id="cost_development" placeholder="80000" value="80000">
+                </div>
+                <div class="field">
+                    <label>Integration (one-time) <span class="hint">CRM, ERP, databases</span></label>
+                    <input type="number" id="cost_integration" placeholder="40000" value="40000">
+                </div>
+                <div class="field">
+                    <label>API / Model costs (monthly) <span class="hint">Token / request costs</span></label>
+                    <input type="number" id="cost_api_monthly" placeholder="5000" value="5000">
+                </div>
+                <div class="field">
+                    <label>Infrastructure (monthly) <span class="hint">Cloud, vector DB, storage</span></label>
+                    <input type="number" id="cost_infra_monthly" placeholder="2000" value="2000">
+                </div>
+                <div class="field">
+                    <label>Maintenance (monthly) <span class="hint">Prompts, monitoring, fixes</span></label>
+                    <input type="number" id="cost_maintenance_monthly" placeholder="3000" value="3000">
+                </div>
+                <div class="field">
+                    <label>Training & Change Mgmt (one-time) <span class="hint">Workshops, docs</span></label>
+                    <input type="number" id="cost_training" placeholder="15000" value="15000">
+                </div>
+                <div class="field">
+                    <label>Governance (annual) <span class="hint">Safety, compliance, audit</span></label>
+                    <input type="number" id="cost_governance" placeholder="20000" value="20000">
+                </div>
+            </div>
+
+            <!-- Benefits Section -->
+            <div class="section">
+                <h2>📈 <span>Benefits</span> — Value</h2>
+                
+                <div class="field">
+                    <label>Labor cost savings (annual) <span class="hint">FTEs avoided or redeployed</span></label>
+                    <input type="number" id="benefit_labor" placeholder="200000" value="200000">
+                </div>
+                <div class="field">
+                    <label>Process cost reduction (annual) <span class="hint">Cheaper per-unit cost</span></label>
+                    <input type="number" id="benefit_process" placeholder="100000" value="100000">
+                </div>
+                <div class="field">
+                    <label>Productivity gains (annual) <span class="hint">Time saved × hourly value</span></label>
+                    <input type="number" id="benefit_productivity" placeholder="150000" value="150000">
+                </div>
+                <div class="field">
+                    <label>Revenue growth (annual) <span class="hint">New/incremental revenue</span></label>
+                    <input type="number" id="benefit_revenue" placeholder="50000" value="50000">
+                </div>
+                <div class="field">
+                    <label>Risk mitigation (annual) <span class="hint">Error/compliance cost avoided</span></label>
+                    <input type="number" id="benefit_risk" placeholder="30000" value="30000">
+                </div>
+
+                <div class="divider" style="margin: 1.5rem 0;"></div>
+
+                <div class="field">
+                    <label>Expected adoption rate (Year 1) <span class="hint">% of users who adopt</span></label>
+                    <input type="number" id="adoption_rate" placeholder="60" value="60" min="0" max="100">
+                </div>
+                <div class="field">
+                    <label>Benefit ramp factor (Year 1) <span class="hint">% of full benefit realized</span></label>
+                    <input type="number" id="ramp_factor" placeholder="55" value="55" min="0" max="100">
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculate Button -->
+        <button class="calc-btn" onclick="calculate()">Calculate ROI →</button>
+
+        <!-- Results -->
+        <div id="results">
+            <div class="divider"></div>
+            
+            <!-- Scenario Toggle -->
+            <div class="scenario-toggle">
+                <button class="scenario-btn" onclick="setScenario('pessimistic')">Pessimistic</button>
+                <button class="scenario-btn active" onclick="setScenario('realistic')">Realistic</button>
+                <button class="scenario-btn" onclick="setScenario('optimistic')">Optimistic</button>
+            </div>
+
+            <!-- Key Results Cards -->
+            <div class="results-grid" id="results-cards"></div>
+
+            <!-- Cost vs Benefit Breakdown Chart -->
+            <div class="chart-container">
+                <h3>Cost vs Benefit Breakdown (Year 1)</h3>
+                <div class="bar-chart" id="breakdown-chart"></div>
+            </div>
+
+            <!-- 3-Year Projection -->
+            <div class="chart-container">
+                <h3>3-Year Cumulative Value</h3>
+                <div class="cumulative-chart" id="cumulative-chart"></div>
+            </div>
+
+            <!-- Export -->
+            <div class="text-center mt-2">
+                <button class="export-btn" onclick="exportSummary()">📋 Copy Summary to Clipboard</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>GenAI ROI Framework — Open Source under MIT License</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="https://github.com/your-org/genai-roi-framework" target="_blank">GitHub Repository</a> · 
+                Calculations are estimates. Actual results depend on execution.
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Use case presets
+        const presets = {
+            custom: {
+                cost_development: 80000, cost_integration: 40000, cost_api_monthly: 5000,
+                cost_infra_monthly: 2000, cost_maintenance_monthly: 3000, cost_training: 15000,
+                cost_governance: 20000, benefit_labor: 200000, benefit_process: 100000,
+                benefit_productivity: 150000, benefit_revenue: 50000, benefit_risk: 30000,
+                adoption_rate: 60, ramp_factor: 55
+            },
+            chatbot: {
+                cost_development: 80000, cost_integration: 40000, cost_api_monthly: 8000,
+                cost_infra_monthly: 2000, cost_maintenance_monthly: 5000, cost_training: 15000,
+                cost_governance: 20000, benefit_labor: 810000, benefit_process: 264000,
+                benefit_productivity: 120000, benefit_revenue: 50000, benefit_risk: 30000,
+                adoption_rate: 70, ramp_factor: 55
+            },
+            codegen: {
+                cost_development: 25000, cost_integration: 5000, cost_api_monthly: 1500,
+                cost_infra_monthly: 0, cost_maintenance_monthly: 500, cost_training: 10000,
+                cost_governance: 10000, benefit_labor: 0, benefit_process: 48000,
+                benefit_productivity: 408000, benefit_revenue: 0, benefit_risk: 25000,
+                adoption_rate: 75, ramp_factor: 70
+            },
+            docproc: {
+                cost_development: 120000, cost_integration: 50000, cost_api_monthly: 15000,
+                cost_infra_monthly: 4000, cost_maintenance_monthly: 6000, cost_training: 15000,
+                cost_governance: 30000, benefit_labor: 800000, benefit_process: 120000,
+                benefit_productivity: 0, benefit_revenue: 0, benefit_risk: 150000,
+                adoption_rate: 65, ramp_factor: 55
+            },
+            content: {
+                cost_development: 25000, cost_integration: 5000, cost_api_monthly: 3000,
+                cost_infra_monthly: 500, cost_maintenance_monthly: 1000, cost_training: 8000,
+                cost_governance: 5000, benefit_labor: 72000, benefit_process: 0,
+                benefit_productivity: 180000, benefit_revenue: 50000, benefit_risk: 0,
+                adoption_rate: 70, ramp_factor: 65
+            },
+            data: {
+                cost_development: 180000, cost_integration: 80000, cost_api_monthly: 10000,
+                cost_infra_monthly: 5000, cost_maintenance_monthly: 7000, cost_training: 20000,
+                cost_governance: 30000, benefit_labor: 500000, benefit_process: 100000,
+                benefit_productivity: 288000, benefit_revenue: 0, benefit_risk: 0,
+                adoption_rate: 55, ramp_factor: 50
+            },
+            knowledge: {
+                cost_development: 180000, cost_integration: 100000, cost_api_monthly: 12000,
+                cost_infra_monthly: 7000, cost_maintenance_monthly: 8000, cost_training: 25000,
+                cost_governance: 40000, benefit_labor: 288000, benefit_process: 0,
+                benefit_productivity: 1326000, benefit_revenue: 0, benefit_risk: 180000,
+                adoption_rate: 55, ramp_factor: 50
+            }
+        };
+
+        let currentScenario = 'realistic';
+        let lastCalcResult = null;
+
+        function selectUseCase(name) {
+            document.querySelectorAll('.use-case-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            const preset = presets[name];
+            for (const [key, value] of Object.entries(preset)) {
+                const el = document.getElementById(key);
+                if (el) el.value = value;
+            }
+        }
+
+        function getInputs() {
+            const get = id => parseFloat(document.getElementById(id).value) || 0;
+            return {
+                cost_development: get('cost_development'),
+                cost_integration: get('cost_integration'),
+                cost_api_monthly: get('cost_api_monthly'),
+                cost_infra_monthly: get('cost_infra_monthly'),
+                cost_maintenance_monthly: get('cost_maintenance_monthly'),
+                cost_training: get('cost_training'),
+                cost_governance: get('cost_governance'),
+                benefit_labor: get('benefit_labor'),
+                benefit_process: get('benefit_process'),
+                benefit_productivity: get('benefit_productivity'),
+                benefit_revenue: get('benefit_revenue'),
+                benefit_risk: get('benefit_risk'),
+                adoption_rate: get('adoption_rate') / 100,
+                ramp_factor: get('ramp_factor') / 100
+            };
+        }
+
+        function scenarioMultiplier(scenario) {
+            switch (scenario) {
+                case 'pessimistic': return { benefit: 0.5, cost: 1.3 };
+                case 'realistic': return { benefit: 0.8, cost: 1.1 };
+                case 'optimistic': return { benefit: 1.0, cost: 1.0 };
+            }
+        }
+
+        function computeROI(inputs, scenario) {
+            const mult = scenarioMultiplier(scenario);
+
+            const oneTimeCosts = (inputs.cost_development + inputs.cost_integration + inputs.cost_training) * mult.cost;
+            const annualOngoingCosts = (inputs.cost_api_monthly + inputs.cost_infra_monthly + inputs.cost_maintenance_monthly) * 12 * mult.cost;
+            const annualGovernance = inputs.cost_governance * mult.cost;
+
+            const totalYear1Cost = oneTimeCosts + annualOngoingCosts + annualGovernance;
+            const totalYear2Cost = annualOngoingCosts + annualGovernance;
+
+            const grossAnnualBenefit = (inputs.benefit_labor + inputs.benefit_process +
+                inputs.benefit_productivity + inputs.benefit_revenue + inputs.benefit_risk) * mult.benefit;
+            
+            const year1Benefit = grossAnnualBenefit * inputs.ramp_factor * inputs.adoption_rate / (mult.benefit || 1) * mult.benefit;
+            const year2Benefit = grossAnnualBenefit * 0.9;
+            const year3Benefit = grossAnnualBenefit * 0.95;
+
+            const year1ROI = totalYear1Cost > 0 ? ((year1Benefit - totalYear1Cost) / totalYear1Cost) * 100 : 0;
+            const year2ROI = totalYear2Cost > 0 ? ((year2Benefit - totalYear2Cost) / totalYear2Cost) * 100 : 0;
+
+            const threeYearNet = year1Benefit + year2Benefit + year3Benefit - totalYear1Cost - totalYear2Cost - totalYear2Cost;
+
+            // Break-even calculation (month-by-month)
+            const monthlyOngoing = (annualOngoingCosts + annualGovernance) / 12;
+            const monthlyFullBenefit = grossAnnualBenefit / 12;
+            const rampFactors = [0.15, 0.25, 0.40, 0.55, 0.65, 0.75, 0.80, 0.85, 0.90, 0.90, 0.95, 0.95,
+                                 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95,
+                                 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95];
+            
+            let cumulative = -oneTimeCosts;
+            let breakEvenMonth = null;
+            const cumulativeData = [{ month: 0, value: cumulative }];
+
+            for (let m = 1; m <= 36; m++) {
+                const ramp = rampFactors[Math.min(m - 1, rampFactors.length - 1)];
+                const monthBenefit = monthlyFullBenefit * ramp * inputs.adoption_rate / (mult.benefit || 1) * mult.benefit;
+                cumulative += monthBenefit - monthlyOngoing;
+                cumulativeData.push({ month: m, value: cumulative });
+                if (cumulative >= 0 && breakEvenMonth === null) {
+                    breakEvenMonth = m;
+                }
+            }
+
+            return {
+                totalYear1Cost, totalYear2Cost, oneTimeCosts, annualOngoingCosts, annualGovernance,
+                year1Benefit, year2Benefit, year3Benefit, grossAnnualBenefit,
+                year1ROI, year2ROI, threeYearNet, breakEvenMonth, cumulativeData,
+                inputs, scenario
+            };
+        }
+
+        function formatCurrency(val) {
+            if (Math.abs(val) >= 1000000) return '$' + (val / 1000000).toFixed(1) + 'M';
+            if (Math.abs(val) >= 1000) return '$' + (val / 1000).toFixed(0) + 'K';
+            return '$' + val.toFixed(0);
+        }
+
+        function renderResults(result) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+
+            // Cards
+            const cardsHtml = `
+                <div class="result-card ${result.year1ROI >= 0 ? 'positive' : 'negative'}">
+                    <div class="label">Year 1 ROI</div>
+                    <div class="value">${result.year1ROI.toFixed(0)}%</div>
+                    <div class="sub">${result.year1ROI >= 0 ? 'Positive return' : 'Negative — needs more time'}</div>
+                </div>
+                <div class="result-card ${result.year2ROI >= 0 ? 'positive' : 'negative'}">
+                    <div class="label">Year 2 ROI</div>
+                    <div class="value">${result.year2ROI.toFixed(0)}%</div>
+                    <div class="sub">Ongoing costs only</div>
+                </div>
+                <div class="result-card ${result.threeYearNet >= 0 ? 'positive' : 'negative'}">
+                    <div class="label">3-Year Net Value</div>
+                    <div class="value">${formatCurrency(result.threeYearNet)}</div>
+                    <div class="sub">Total value minus total cost</div>
+                </div>
+                <div class="result-card neutral">
+                    <div class="label">Break-Even</div>
+                    <div class="value">${result.breakEvenMonth ? result.breakEvenMonth + ' mo' : '>36 mo'}</div>
+                    <div class="sub">${result.breakEvenMonth ? 'Months to positive' : 'Not reached in 3 years'}</div>
+                </div>
+            `;
+            document.getElementById('results-cards').innerHTML = cardsHtml;
+
+            // Bar chart
+            const costItems = [
+                { label: 'Development', value: result.inputs.cost_development },
+                { label: 'Integration', value: result.inputs.cost_integration },
+                { label: 'API / Model (yr)', value: result.inputs.cost_api_monthly * 12 },
+                { label: 'Infrastructure (yr)', value: result.inputs.cost_infra_monthly * 12 },
+                { label: 'Maintenance (yr)', value: result.inputs.cost_maintenance_monthly * 12 },
+                { label: 'Training', value: result.inputs.cost_training },
+                { label: 'Governance', value: result.inputs.cost_governance },
+            ];
+            const benefitItems = [
+                { label: 'Labor savings', value: result.inputs.benefit_labor },
+                { label: 'Process savings', value: result.inputs.benefit_process },
+                { label: 'Productivity', value: result.inputs.benefit_productivity },
+                { label: 'Revenue growth', value: result.inputs.benefit_revenue },
+                { label: 'Risk mitigation', value: result.inputs.benefit_risk },
+            ];
+
+            const allValues = [...costItems, ...benefitItems].map(i => i.value);
+            const maxVal = Math.max(...allValues, 1);
+
+            let barHtml = '';
+            costItems.forEach(item => {
+                const pct = (item.value / maxVal * 100).toFixed(1);
+                barHtml += `<div class="bar-row">
+                    <div class="bar-label">${item.label}</div>
+                    <div class="bar-track"><div class="bar-fill cost" style="width:${pct}%"></div></div>
+                    <div class="bar-value">${formatCurrency(item.value)}</div>
+                </div>`;
+            });
+            barHtml += `<div style="height:8px"></div>`;
+            benefitItems.forEach(item => {
+                const pct = (item.value / maxVal * 100).toFixed(1);
+                barHtml += `<div class="bar-row">
+                    <div class="bar-label">${item.label}</div>
+                    <div class="bar-track"><div class="bar-fill benefit" style="width:${pct}%"></div></div>
+                    <div class="bar-value">${formatCurrency(item.value)}</div>
+                </div>`;
+            });
+            document.getElementById('breakdown-chart').innerHTML = barHtml;
+
+            // Cumulative SVG chart
+            renderCumulativeChart(result.cumulativeData);
+        }
+
+        function renderCumulativeChart(data) {
+            const container = document.getElementById('cumulative-chart');
+            const W = 800, H = 220, pad = { t: 20, r: 60, b: 35, l: 70 };
+            const plotW = W - pad.l - pad.r;
+            const plotH = H - pad.t - pad.b;
+
+            const values = data.map(d => d.value);
+            const minV = Math.min(...values, 0);
+            const maxV = Math.max(...values, 0);
+            const range = maxV - minV || 1;
+
+            const x = (month) => pad.l + (month / 36) * plotW;
+            const y = (val) => pad.t + plotH - ((val - minV) / range) * plotH;
+
+            // Build path
+            let pathD = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(d.month).toFixed(1)} ${y(d.value).toFixed(1)}`).join(' ');
+
+            // Zero line
+            const zeroY = y(0);
+
+            // Area fill
+            let areaD = pathD + ` L ${x(36).toFixed(1)} ${zeroY.toFixed(1)} L ${x(0).toFixed(1)} ${zeroY.toFixed(1)} Z`;
+
+            // Grid lines
+            const gridLines = 5;
+            let gridHtml = '';
+            for (let i = 0; i <= gridLines; i++) {
+                const val = minV + (range / gridLines) * i;
+                const gy = y(val);
+                gridHtml += `<line x1="${pad.l}" y1="${gy}" x2="${W - pad.r}" y2="${gy}" stroke="#2a3550" stroke-width="0.5"/>`;
+                gridHtml += `<text x="${pad.l - 10}" y="${gy + 4}" text-anchor="end" fill="#64748b" font-size="10" font-family="Space Mono, monospace">${formatCurrency(val)}</text>`;
+            }
+
+            // Month labels
+            let monthLabels = '';
+            for (let m = 0; m <= 36; m += 6) {
+                monthLabels += `<text x="${x(m)}" y="${H - 8}" text-anchor="middle" fill="#64748b" font-size="10" font-family="Space Mono, monospace">M${m}</text>`;
+            }
+
+            container.innerHTML = `
+                <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+                    ${gridHtml}
+                    <line x1="${pad.l}" y1="${zeroY}" x2="${W - pad.r}" y2="${zeroY}" stroke="#64748b" stroke-width="1" stroke-dasharray="4,4"/>
+                    <defs>
+                        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#10b981" stop-opacity="0.2"/>
+                            <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="${areaD}" fill="url(#areaGrad)"/>
+                    <path d="${pathD}" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    ${monthLabels}
+                    <text x="${W - pad.r + 10}" y="${y(data[data.length - 1].value) + 4}" fill="#10b981" font-size="11" font-weight="700" font-family="Space Mono, monospace">${formatCurrency(data[data.length - 1].value)}</text>
+                </svg>
+            `;
+        }
+
+        function calculate() {
+            const inputs = getInputs();
+            lastCalcResult = computeROI(inputs, currentScenario);
+            renderResults(lastCalcResult);
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function setScenario(scenario) {
+            currentScenario = scenario;
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            if (lastCalcResult) {
+                const inputs = getInputs();
+                lastCalcResult = computeROI(inputs, scenario);
+                renderResults(lastCalcResult);
+            }
+        }
+
+        function exportSummary() {
+            if (!lastCalcResult) return;
+            const r = lastCalcResult;
+            const text = `GenAI ROI Calculation Summary
+================================
+Scenario: ${r.scenario.charAt(0).toUpperCase() + r.scenario.slice(1)}
+
+COSTS (Year 1):
+  Development:        ${formatCurrency(r.inputs.cost_development)}
+  Integration:        ${formatCurrency(r.inputs.cost_integration)}
+  API/Model (annual): ${formatCurrency(r.inputs.cost_api_monthly * 12)}
+  Infrastructure:     ${formatCurrency(r.inputs.cost_infra_monthly * 12)}
+  Maintenance:        ${formatCurrency(r.inputs.cost_maintenance_monthly * 12)}
+  Training:           ${formatCurrency(r.inputs.cost_training)}
+  Governance:         ${formatCurrency(r.inputs.cost_governance)}
+  Total Year 1 Cost:  ${formatCurrency(r.totalYear1Cost)}
+
+BENEFITS (Annual at full capacity):
+  Labor savings:      ${formatCurrency(r.inputs.benefit_labor)}
+  Process savings:    ${formatCurrency(r.inputs.benefit_process)}
+  Productivity:       ${formatCurrency(r.inputs.benefit_productivity)}
+  Revenue growth:     ${formatCurrency(r.inputs.benefit_revenue)}
+  Risk mitigation:    ${formatCurrency(r.inputs.benefit_risk)}
+  Total Annual:       ${formatCurrency(r.grossAnnualBenefit)}
+
+RESULTS:
+  Year 1 ROI:         ${r.year1ROI.toFixed(0)}%
+  Year 2 ROI:         ${r.year2ROI.toFixed(0)}%
+  3-Year Net Value:   ${formatCurrency(r.threeYearNet)}
+  Break-Even:         ${r.breakEvenMonth ? r.breakEvenMonth + ' months' : '>36 months'}
+
+Generated by GenAI ROI Framework (github.com/your-org/genai-roi-framework)`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.export-btn');
+                const original = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => btn.textContent = original, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
