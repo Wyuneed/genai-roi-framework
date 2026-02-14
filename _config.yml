@@ -1,0 +1,30 @@
+title: GenAI ROI Framework
+description: >-
+  A free, open-source framework to calculate and justify the ROI of Generative AI
+  projects. Interactive calculator, use case playbooks, and business case templates.
+baseurl: "/genai-roi-framework"
+url: "https://wyuneed.github.io"
+
+theme: minima
+
+# Minima theme settings
+minima:
+  skin: dark
+
+# Show all markdown files in docs/
+include:
+  - docs
+
+# Exclude non-web files from the Jekyll build
+exclude:
+  - "*.sh"
+  - node_modules/
+  - vendor/
+
+# Default front matter for docs pages
+defaults:
+  - scope:
+      path: "docs"
+      type: "pages"
+    values:
+      layout: "default"

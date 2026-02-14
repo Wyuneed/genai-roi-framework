@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GenAI ROI Framework — Calculate & Justify Your AI Investment</title>
+  <meta name="description" content="A free, open-source framework to calculate and justify the ROI of Generative AI projects. Interactive calculator, use case playbooks, and business case templates." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #0f1628;
+      --bg-card: #141d35;
+      --bg-card-hover: #1a2440;
+      --accent-blue: #3b82f6;
+      --accent-blue-light: #60a5fa;
+      --accent-green: #10b981;
+      --accent-green-light: #34d399;
+      --accent-purple: #8b5cf6;
+      --accent-yellow: #f59e0b;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border: #1e2d4a;
+      --border-light: #243352;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent-blue-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ─── NAV ─────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 14, 26, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--accent-blue-light); }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-cta {
+      background: var(--accent-blue);
+      color: #fff !important;
+      padding: 0.45rem 1.1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background 0.2s !important;
+    }
+    .nav-cta:hover { background: var(--accent-blue-light) !important; text-decoration: none !important; }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+    }
+
+    /* ─── HERO ────────────────────────────────────────── */
+    .hero {
+      padding: 7rem 2rem 5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(59,130,246,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.3);
+      color: var(--accent-blue-light);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 1rem;
+      border-radius: 100px;
+      margin-bottom: 1.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 700;
+      line-height: 1.15;
+      max-width: 820px;
+      margin: 0 auto 1.5rem;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent-blue-light), var(--accent-green-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      color: #fff;
+      padding: 0.85rem 2rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); text-decoration: none; }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      color: var(--text-primary);
+      padding: 0.85rem 2rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--accent-blue-light); background: rgba(59,130,246,0.07); text-decoration: none; }
+
+    .hero-stats {
+      display: flex;
+      gap: 3rem;
+      justify-content: center;
+      margin-top: 4rem;
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-green-light);
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* ─── SECTIONS ────────────────────────────────────── */
+    section { padding: 5rem 2rem; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-blue-light);
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .section-sub {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin-bottom: 3rem;
+    }
+
+    /* ─── PILLARS ─────────────────────────────────────── */
+    .pillars-section { background: var(--bg-secondary); }
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+    .pillar-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .pillar-card:hover { border-color: var(--border-light); background: var(--bg-card-hover); }
+    .pillar-icon {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+    }
+    .pillar-card h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+    .pillar-card p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+    .pillar-card ul {
+      list-style: none;
+      margin-top: 0.75rem;
+    }
+    .pillar-card ul li {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding: 0.15rem 0;
+    }
+    .pillar-card ul li::before { content: '→ '; color: var(--accent-blue-light); }
+
+    /* ─── HOW IT WORKS ────────────────────────────────── */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      position: relative;
+    }
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      position: relative;
+    }
+    .step-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-blue-light);
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.2);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .step-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .step-card p { font-size: 0.9rem; color: var(--text-secondary); }
+    .step-card a { color: var(--accent-blue-light); font-size: 0.85rem; display: inline-block; margin-top: 0.75rem; }
+
+    /* ─── USE CASES ───────────────────────────────────── */
+    .use-cases-section { background: var(--bg-secondary); }
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+    .use-case-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      display: block;
+    }
+    .use-case-card:hover {
+      border-color: var(--accent-blue-light);
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+    .use-case-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .use-case-emoji { font-size: 1.5rem; }
+    .roi-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.25);
+      color: var(--accent-green-light);
+      padding: 0.25rem 0.6rem;
+      border-radius: 100px;
+    }
+    .use-case-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .use-case-card p { font-size: 0.875rem; color: var(--text-secondary); }
+
+    /* ─── DOCS ────────────────────────────────────────── */
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .doc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: border-color 0.2s, background 0.2s;
+      display: block;
+    }
+    .doc-card:hover {
+      border-color: var(--border-light);
+      background: var(--bg-card-hover);
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+    .doc-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 100px;
+      margin-bottom: 0.75rem;
+      display: inline-block;
+    }
+    .tag-framework { background: rgba(59,130,246,0.12); color: var(--accent-blue-light); }
+    .tag-template { background: rgba(139,92,246,0.12); color: #a78bfa; }
+    .doc-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .doc-card p { font-size: 0.85rem; color: var(--text-secondary); }
+
+    /* ─── CALCULATOR CTA ──────────────────────────────── */
+    .calculator-cta {
+      background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(16,185,129,0.08));
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 20px;
+      padding: 3.5rem 2rem;
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .calculator-cta h2 { font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
+    .calculator-cta p { font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 2rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .calculator-features {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .calc-feature {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .calc-feature-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green-light);
+      flex-shrink: 0;
+    }
+
+    /* ─── FOOTER ──────────────────────────────────────── */
+    footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .footer-links a { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-copy { font-size: 0.8rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">GenAI <span>ROI</span> Framework</a>
+      <ul class="nav-links">
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#use-cases">Use Cases</a></li>
+        <li><a href="#docs">Docs</a></li>
+        <li><a href="https://github.com/Wyuneed/genai-roi-framework" target="_blank">GitHub</a></li>
+        <li><a href="calculator/" class="nav-cta">Open Calculator</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">🚀 Open Source · Free Forever</div>
+    <h1>Calculate the ROI of Your<br /><span>Generative AI Investment</span></h1>
+    <p class="hero-sub">A universal framework for organizations to quantify, justify, and track the business value of any GenAI project — from chatbots to code generation.</p>
+    <div class="hero-actions">
+      <a href="calculator/" class="btn-primary">Open ROI Calculator →</a>
+      <a href="#how-it-works" class="btn-secondary">How It Works</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-value">6</div>
+        <div class="stat-label">Use Case Playbooks</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">4</div>
+        <div class="stat-label">ROI Pillars</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Scenario Models</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">0</div>
+        <div class="stat-label">Dependencies</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PILLARS -->
+  <section class="pillars-section">
+    <div class="container">
+      <div class="section-label">The Framework</div>
+      <h2 class="section-title">Four pillars that capture every benefit</h2>
+      <p class="section-sub">Every benefit from a GenAI project maps to one of these four value drivers. Together they build the complete ROI picture.</p>
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <div class="pillar-icon">💰</div>
+          <h3>Cost Reduction</h3>
+          <p>Direct savings from replacing or augmenting manual work.</p>
+          <ul>
+            <li>Labor savings</li>
+            <li>Tool consolidation</li>
+            <li>Infrastructure reduction</li>
+            <li>Process elimination</li>
+          </ul>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">📈</div>
+          <h3>Revenue Growth</h3>
+          <p>Incremental revenue AI makes possible.</p>
+          <ul>
+            <li>New products & features</li>
+            <li>Conversion uplift</li>
+            <li>Upsell opportunities</li>
+            <li>Market expansion</li>
+          </ul>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">⚡</div>
+          <h3>Productivity Gains</h3>
+          <p>Value of people doing more, better, and faster.</p>
+          <ul>
+            <li>Speed to market</li>
+            <li>Output increase</li>
+            <li>Employee focus shift</li>
+            <li>Quality improvement</li>
+          </ul>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">🛡️</div>
+          <h3>Risk Mitigation</h3>
+          <p>Value of bad outcomes prevented.</p>
+          <ul>
+            <li>Error reduction</li>
+            <li>Compliance assurance</li>
+            <li>Quality control</li>
+            <li>Audit readiness</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
+    <div class="container">
+      <div class="section-label">Quick Start</div>
+      <h2 class="section-title">From zero to business case in 4 steps</h2>
+      <p class="section-sub">Whether you're pitching to a board or stress-testing your own assumptions, this is the path.</p>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <h3>Understand the Framework</h3>
+          <p>Learn the 4-pillar ROI model, how to estimate costs accurately, and how to quantify benefits.</p>
+          <a href="docs/framework/01-introduction">Read the Introduction →</a>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <h3>Pick Your Use Case</h3>
+          <p>Find your scenario in the use case library. Each playbook has worked examples with real numbers.</p>
+          <a href="#use-cases">Browse Use Cases →</a>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <h3>Run the Numbers</h3>
+          <p>Open the interactive calculator, plug in your assumptions, and get a projected ROI with break-even date.</p>
+          <a href="calculator/">Open Calculator →</a>
+        </div>
+        <div class="step-card">
+          <div class="step-num">04</div>
+          <h3>Build Your Business Case</h3>
+          <p>Use the templates to package your analysis into a compelling pitch for leadership and stakeholders.</p>
+          <a href="docs/templates/business-case-template">Get Template →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section id="use-cases" class="use-cases-section">
+    <div class="container">
+      <div class="section-label">Use Case Library</div>
+      <h2 class="section-title">Playbooks for every GenAI scenario</h2>
+      <p class="section-sub">Each playbook includes key metrics, cost drivers, benefit formulas, a worked ROI example, and measurement tips.</p>
+      <div class="use-cases-grid">
+        <a href="docs/use-cases/chatbot-customer-support" class="use-case-card">
+          <div class="use-case-header">
+            <div class="use-case-emoji">🤖</div>
+            <div class="roi-badge">150–400% ROI</div>
+          </div>
+          <h3>Chatbot & Customer Support</h3>
+          <p>AI-powered ticket deflection, agent assist, and 24/7 support coverage.</p>
+        </a>
+        <a href="docs/use-cases/code-generation" class="use-case-card">
+          <div class="use-case-header">
+            <div class="use-case-emoji">👨‍💻</div>
+            <div class="roi-badge">100–300% ROI</div>
+          </div>
+          <h3>Code Generation & Dev Productivity</h3>
+          <p>AI coding assistants, test generation, and code review acceleration.</p>
+        </a>
+        <a href="docs/use-cases/document-processing" class="use-case-card">
+          <div class="use-case-header">
+            <div class="use-case-emoji">📄</div>
+            <div class="roi-badge">200–500% ROI</div>
+          </div>
+          <h3>Document Processing & Summarization</h3>
+          <p>Intelligent extraction, summarization, and compliance checking at scale.</p>
+        </a>
+        <a href="docs/use-cases/content-generation" class="use-case-card">
+          <div class="use-case-header">
+            <div class="use-case-emoji">✍️</div>
+            <div class="roi-badge">150–350% ROI</div>
+          </div>
+          <h3>Content Generation & Marketing</h3>
+          <p>AI-assisted content creation, repurposing, and personalization at scale.</p>
+        </a>
+        <a href="docs/use-cases/data-analysis" class="use-case-card">
+          <div class="use-case-header">
+            <div class="use-case-emoji">📊</div>
+            <div class="roi-badge">100–250% ROI</div>
+          </div>
+          <h3>Data Analysis & Insights</h3>
+          <p>Natural language analytics, automated reporting, and self-serve data access.</p>
+        </a>
+        <a href="docs/use-cases/internal-knowledge-base" class="use-case-card">
+          <div class="use-case-header">
+            <div class="use-case-emoji">🧠</div>
+            <div class="roi-badge">150–400% ROI</div>
+          </div>
+          <h3>Internal Knowledge Base & Search</h3>
+          <p>Enterprise RAG search, onboarding acceleration, and expert knowledge capture.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCS -->
+  <section id="docs">
+    <div class="container">
+      <div class="section-label">Documentation</div>
+      <h2 class="section-title">Everything you need to build a solid ROI case</h2>
+      <p class="section-sub">Deep-dive guides and ready-to-use templates for every stage of your GenAI business case.</p>
+      <div class="docs-grid">
+        <a href="docs/framework/01-introduction" class="doc-card">
+          <span class="doc-tag tag-framework">Framework</span>
+          <h3>Introduction to GenAI ROI</h3>
+          <p>Why ROI is hard for GenAI, the core principles, and how to use this framework.</p>
+        </a>
+        <a href="docs/framework/02-roi-model" class="doc-card">
+          <span class="doc-tag tag-framework">Framework</span>
+          <h3>The ROI Model</h3>
+          <p>The four-pillar model explained in depth, with formulas and scenario modeling.</p>
+        </a>
+        <a href="docs/framework/03-cost-model" class="doc-card">
+          <span class="doc-tag tag-framework">Framework</span>
+          <h3>Cost Model</h3>
+          <p>Every cost category with estimation guides, benchmarks, and optimization strategies.</p>
+        </a>
+        <a href="docs/framework/04-benefit-model" class="doc-card">
+          <span class="doc-tag tag-framework">Framework</span>
+          <h3>Benefit Model</h3>
+          <p>How to quantify labor savings, productivity gains, revenue growth, and risk reduction.</p>
+        </a>
+        <a href="docs/framework/05-break-even-analysis" class="doc-card">
+          <span class="doc-tag tag-framework">Framework</span>
+          <h3>Break-Even Analysis</h3>
+          <p>Month-by-month payback period calculation with worked examples and NPV guidance.</p>
+        </a>
+        <a href="docs/framework/06-decision-guide" class="doc-card">
+          <span class="doc-tag tag-framework">Framework</span>
+          <h3>Decision Guide</h3>
+          <p>Is GenAI right for your use case? Build vs. buy framework and readiness assessment.</p>
+        </a>
+        <a href="docs/templates/business-case-template" class="doc-card">
+          <span class="doc-tag tag-template">Template</span>
+          <h3>Business Case Template</h3>
+          <p>Complete stakeholder-ready template to present ROI projections and get buy-in.</p>
+        </a>
+        <a href="docs/templates/measurement-plan" class="doc-card">
+          <span class="doc-tag tag-template">Template</span>
+          <h3>Measurement Plan</h3>
+          <p>Define KPIs, baselines, and data collection methodology before you deploy.</p>
+        </a>
+        <a href="docs/templates/pre-post-scorecard" class="doc-card">
+          <span class="doc-tag tag-template">Template</span>
+          <h3>Pre/Post Scorecard</h3>
+          <p>Compare baseline vs. actual performance to validate ROI after launch.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALCULATOR CTA -->
+  <section>
+    <div class="container">
+      <div class="calculator-cta">
+        <h2>Ready to run your numbers?</h2>
+        <p>The interactive calculator works entirely in your browser. No signup, no server, no data sent anywhere.</p>
+        <div class="calculator-features">
+          <div class="calc-feature"><div class="calc-feature-dot"></div> 7 pre-built use case templates</div>
+          <div class="calc-feature"><div class="calc-feature-dot"></div> 3-year projections</div>
+          <div class="calc-feature"><div class="calc-feature-dot"></div> Scenario modeling</div>
+          <div class="calc-feature"><div class="calc-feature-dot"></div> Break-even calculation</div>
+        </div>
+        <a href="calculator/" class="btn-primary">Open ROI Calculator →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">GenAI ROI Framework</div>
+      <div class="footer-links">
+        <a href="calculator/">Calculator</a>
+        <a href="docs/framework/01-introduction">Framework</a>
+        <a href="#use-cases">Use Cases</a>
+        <a href="docs/templates/business-case-template">Templates</a>
+        <a href="https://github.com/Wyuneed/genai-roi-framework" target="_blank">GitHub</a>
+        <a href="https://github.com/Wyuneed/genai-roi-framework/blob/main/CONTRIBUTING.md" target="_blank">Contributing</a>
+      </div>
+      <div class="footer-copy">MIT License · Built to democratize GenAI ROI assessment</div>
+    </div>
+  </footer>
+
+</body>
+</html>
